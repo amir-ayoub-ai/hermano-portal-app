@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light mode — base areia/branco com acentos dourados escuros */
+    --background: 36 33% 97%;          /* #FBF8F2 */
+    --foreground: 210 38% 11%;         /* #121D28 */
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 38% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 38% 11%;
+
+    --primary: 210 38% 11%;            /* navy #121D28 */
+    --primary-foreground: 36 33% 97%;
+
+    --secondary: 36 30% 88%;           /* areia clara */
+    --secondary-foreground: 210 38% 11%;
+
+    --muted: 36 25% 92%;
+    --muted-foreground: 214 15% 38%;
+
+    --accent: 44 53% 33%;              /* dourado escuro #8C722B */
+    --accent-foreground: 36 33% 97%;
+
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 36 20% 85%;
+    --input: 36 20% 85%;
+    --ring: 44 53% 33%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Dark mode — navy profundo com dourado champagne */
+    --background: 210 38% 11%;         /* #121D28 */
+    --foreground: 36 33% 95%;
+
+    --card: 214 31% 16%;               /* navy médio mais profundo */
+    --card-foreground: 36 33% 95%;
+
+    --popover: 210 38% 13%;
+    --popover-foreground: 36 33% 95%;
+
+    --primary: 46 65% 73%;             /* dourado champagne #E8D38D */
+    --primary-foreground: 210 38% 11%;
+
+    --secondary: 214 31% 22%;
+    --secondary-foreground: 36 33% 95%;
+
+    --muted: 214 25% 20%;
+    --muted-foreground: 36 15% 70%;
+
+    --accent: 46 65% 73%;              /* champagne */
+    --accent-foreground: 210 38% 11%;
+
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 25% 22%;
+    --input: 214 25% 22%;
+    --ring: 46 65% 73%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  h1, h2, h3, h4 {
+    @apply font-serif tracking-tight;
+  }
+}
+
+@layer utilities {
+  .gold-gradient-text {
+    background: linear-gradient(135deg, #E8D38D 0%, #C9A962 50%, #8C722B 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .glass-card {
+    @apply bg-card/70 backdrop-blur-xl border border-border/60;
+  }
+  .gold-shimmer {
+    background: linear-gradient(
+      110deg,
+      #C9A962 0%,
+      #E8D38D 45%,
+      #FCF9F1 50%,
+      #E8D38D 55%,
+      #C9A962 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer-gold 3s linear infinite;
+  }
+}
