@@ -1,33 +1,69 @@
 import {
+  AlertTriangle,
   CalendarClock,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
   Circle,
   Clock,
+  Eye,
   Loader2,
   Sparkles,
+  ThumbsUp,
 } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { ModuleHeader } from "@/components/shared/ModuleHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { useHoldingPhases, type RemotePhase, type RemoteTaskStatus } from "@/lib/holding";
+import {
+  useHoldingPhases,
+  type RemotePhase,
+  type RemoteTaskStatus,
+} from "@/lib/holding";
 
 const STATUS_LABEL: Record<RemoteTaskStatus, string> = {
-  pending: "Pendente",
+  pending: "Aguardando",
   in_progress: "Em andamento",
+  in_review: "Em revisão",
+  in_approval: "Em aprovação",
   completed: "Concluída",
+  blocked: "Travada",
 };
 
 function StatusIcon({ status }: { status: RemoteTaskStatus }) {
   if (status === "completed")
     return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
+  if (status === "blocked")
+    return <AlertTriangle className="h-4 w-4 text-rose-500" />;
+  if (status === "in_approval")
+    return <ThumbsUp className="h-4 w-4 text-amber-500" />;
+  if (status === "in_review")
+    return <Eye className="h-4 w-4 text-blue-500" />;
   if (status === "in_progress")
     return <Loader2 className="h-4 w-4 animate-spin text-accent" />;
   return <Circle className="h-4 w-4 text-muted-foreground" />;
+}
+
+function StatusBadge({ status }: { status: RemoteTaskStatus }) {
+  const cfg: Record<RemoteTaskStatus, { variant: "muted" | "gold" | "success" | "warn"; cls?: string; icon?: typeof Clock }> = {
+    pending:     { variant: "muted" },
+    in_progress: { variant: "gold", icon: Clock },
+    in_review:   { variant: "warn", cls: "bg-blue-500/10 border-blue-500/40 text-blue-700 dark:text-blue-400", icon: Eye },
+    in_approval: { variant: "warn", icon: ThumbsUp },
+    completed:   { variant: "success", icon: CheckCircle2 },
+    blocked:     { variant: "warn", cls: "bg-rose-500/10 border-rose-500/40 text-rose-700 dark:text-rose-400 font-semibold", icon: AlertTriangle },
+  };
+  const c = cfg[status];
+  const Icon = c.icon;
+  return (
+    <Badge variant={c.variant} className={cn("gap-1", c.cls)}>
+      {Icon && <Icon className="h-3 w-3" />}
+      {STATUS_LABEL[status]}
+    </Badge>
+  );
 }
 
 function formatDate(iso: string | null): string | null {
@@ -45,14 +81,20 @@ function formatDate(iso: string | null): string | null {
 }
 
 function PhaseCard({ phase }: { phase: RemotePhase }) {
-  const [open, setOpen] = useState(phase.status === "in_progress");
+  const [open, setOpen] = useState(
+    phase.status === "in_progress" ||
+      phase.status === "blocked" ||
+      phase.status === "in_review" ||
+      phase.status === "in_approval",
+  );
   const estimated = formatDate(phase.estimatedDate);
 
   return (
     <Card
-      className={
-        phase.status === "in_progress" ? "border-accent/40 shadow-gold" : ""
-      }
+      className={cn(
+        phase.status === "in_progress" && "border-accent/40 shadow-gold",
+        phase.status === "blocked" && "border-rose-500/40",
+      )}
     >
       <CardHeader>
         <button
@@ -82,30 +124,30 @@ function PhaseCard({ phase }: { phase: RemotePhase }) {
               )}
             </p>
           </div>
-          {phase.status === "completed" && (
-            <Badge variant="success" className="gap-1">
-              <CheckCircle2 className="h-3 w-3" />
-              Concluída
-            </Badge>
-          )}
-          {phase.status === "in_progress" && (
-            <Badge variant="gold" className="gap-1">
-              <Clock className="h-3 w-3" />
-              Em andamento
-            </Badge>
-          )}
-          {phase.status === "pending" && (
-            <Badge variant="muted">Aguardando</Badge>
-          )}
+          <StatusBadge status={phase.status} />
         </button>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Progresso</span>
-            <span className="font-medium text-foreground">{phase.progress}%</span>
+            <span
+              className={cn(
+                "font-medium text-foreground",
+                phase.isBlocked && "text-rose-600 dark:text-rose-400",
+              )}
+            >
+              {phase.progress}%
+            </span>
           </div>
-          <Progress value={phase.progress} />
+          <Progress
+            value={phase.progress}
+            className={
+              phase.isBlocked
+                ? "[&>div]:!bg-rose-500 [&>div]:!bg-none"
+                : undefined
+            }
+          />
         </div>
 
         {open && phase.subtasks.length > 0 && (
@@ -115,17 +157,23 @@ function PhaseCard({ phase }: { phase: RemotePhase }) {
               return (
                 <div
                   key={task.id}
-                  className="flex items-start justify-between gap-3 rounded-md border border-border/40 bg-background/30 px-3 py-2 text-sm"
+                  className={cn(
+                    "flex items-start justify-between gap-3 rounded-md border bg-background/30 px-3 py-2 text-sm",
+                    task.isBlocked
+                      ? "border-rose-500/30 bg-rose-500/5"
+                      : "border-border/40",
+                  )}
                 >
                   <div className="flex flex-1 items-start gap-2">
                     <StatusIcon status={task.status} />
                     <div className="flex-1">
                       <p
-                        className={
-                          task.status === "completed"
-                            ? "text-muted-foreground line-through"
-                            : ""
-                        }
+                        className={cn(
+                          task.status === "completed" &&
+                            "text-muted-foreground line-through",
+                          task.isBlocked &&
+                            "font-medium text-rose-700 dark:text-rose-400",
+                        )}
                       >
                         {task.name}
                       </p>
@@ -137,8 +185,8 @@ function PhaseCard({ phase }: { phase: RemotePhase }) {
                       )}
                     </div>
                   </div>
-                  <span className="hidden text-xs text-muted-foreground sm:inline">
-                    {STATUS_LABEL[task.status]}
+                  <span className="hidden text-xs sm:inline">
+                    <StatusBadge status={task.status} />
                   </span>
                 </div>
               );

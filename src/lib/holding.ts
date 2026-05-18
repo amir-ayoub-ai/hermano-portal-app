@@ -4,13 +4,21 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 
-export type RemoteTaskStatus = "pending" | "in_progress" | "completed";
+export type RemoteTaskStatus =
+  | "pending"
+  | "in_progress"
+  | "in_review"
+  | "in_approval"
+  | "completed"
+  | "blocked";
 
 export interface RemoteSubtask {
   id: string;
   name: string;
   status: RemoteTaskStatus;
   statusLabel: string;
+  isBlocked: boolean;
+  progress: number;
   estimatedDate: string | null;
 }
 
@@ -20,6 +28,7 @@ export interface RemotePhase {
   status: RemoteTaskStatus;
   statusLabel: string;
   progress: number;
+  isBlocked: boolean;
   estimatedDate: string | null;
   subtasks: RemoteSubtask[];
 }
