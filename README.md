@@ -51,11 +51,11 @@ pnpm build        # gera dist/
 
 Auto-deploy via Cloudflare Pages a cada push na branch `main`.
 
-URL pública: <https://garcez-portal.pages.dev>
+URL pública: <https://garcez-sahf-app.pages.dev>
 
 Para deploy manual:
 
 ```sh
 pnpm build
-npx wrangler pages deploy dist --project-name=garcez-portal --branch=main
+npx wrangler pages deploy dist --project-name=garcez-sahf-app --branch=main
 ```
