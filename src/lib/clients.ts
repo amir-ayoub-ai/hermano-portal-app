@@ -53,6 +53,35 @@ export async function regeneratePassword(clientId: string): Promise<string> {
   return res.tempPassword;
 }
 
+export interface NewClientInput {
+  fullName: string;
+  email: string;
+  whatsapp?: string;
+  cpf?: string;
+  driveUrl?: string;
+  currentStage?: Stage;
+  hasSahf?: boolean;
+  clickupTaskId?: string;
+}
+
+export interface NewClientResult {
+  client: Client;
+  tempPassword?: string;
+}
+
+export async function createClient(
+  input: NewClientInput,
+): Promise<NewClientResult> {
+  const res = await api.post<ApiClient & { tempPassword?: string }>(
+    "/api/clients",
+    input,
+  );
+  return {
+    client: toClient(res),
+    tempPassword: res.tempPassword,
+  };
+}
+
 export function useClients() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);

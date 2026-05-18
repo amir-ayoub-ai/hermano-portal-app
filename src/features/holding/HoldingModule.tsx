@@ -203,6 +203,15 @@ export default function HoldingModule() {
   const clientId = user?.clientId ?? null;
   const { phases, loading, error, message } = useHoldingPhases(clientId);
 
+  const totalProgress =
+    phases.length > 0
+      ? Math.round(
+          phases.reduce((sum, p) => sum + p.progress, 0) / phases.length,
+        )
+      : 0;
+  const completedCount = phases.filter((p) => p.status === "completed").length;
+  const blockedCount = phases.filter((p) => p.isBlocked).length;
+
   return (
     <>
       <ModuleHeader
@@ -210,6 +219,44 @@ export default function HoldingModule() {
         title="Holding Familiar"
         description="Acompanhe abaixo o passo-a-passo da constituição da sua holding, com status e previsões atualizadas em tempo real."
       />
+
+      {phases.length > 0 && (
+        <Card className="mb-6 border-accent/20 bg-gradient-to-br from-card to-card/40">
+          <CardContent className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gold-gradient text-navy shadow-gold">
+                <Sparkles className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-serif text-2xl">
+                  Sua holding está em{" "}
+                  <span className="gold-gradient-text">{totalProgress}%</span>{" "}
+                  concluída
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {completedCount} de {phases.length} etapas finalizadas
+                  {blockedCount > 0 && (
+                    <span className="ml-2 inline-flex items-center gap-1 text-rose-600 dark:text-rose-400">
+                      · <AlertTriangle className="h-3 w-3" />
+                      {blockedCount} etapa{blockedCount > 1 ? "s" : ""} travada
+                      {blockedCount > 1 ? "s" : ""}
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="w-full sm:w-64">
+              <div className="mb-2 flex justify-between text-xs text-muted-foreground">
+                <span>Progresso geral</span>
+                <span className="font-medium text-foreground">
+                  {totalProgress}%
+                </span>
+              </div>
+              <Progress value={totalProgress} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {loading && (
         <Card>

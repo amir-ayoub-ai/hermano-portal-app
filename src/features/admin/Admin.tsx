@@ -8,12 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ClientList } from "./ClientList";
 import { ClientDetail } from "./ClientDetail";
+import { NewClientModal } from "./NewClientModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Admin() {
-  const { clients, loading, error, updateClient } = useClients();
+  const { clients, loading, error, updateClient, reload } = useClients();
   const [selected, setSelected] = useState<Client | null>(null);
   const [query, setQuery] = useState("");
+  const [newClientOpen, setNewClientOpen] = useState(false);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -71,11 +73,19 @@ export default function Admin() {
           </p>
           <h1 className="mt-1 font-serif text-3xl">Clientes</h1>
         </div>
-        <Button variant="gold" disabled>
+        <Button variant="gold" onClick={() => setNewClientOpen(true)}>
           <Plus className="h-4 w-4" />
           Novo cliente
         </Button>
       </div>
+
+      <NewClientModal
+        open={newClientOpen}
+        onOpenChange={setNewClientOpen}
+        onCreated={() => {
+          void reload();
+        }}
+      />
 
       <Tabs defaultValue="clientes">
         <TabsList>
