@@ -166,9 +166,8 @@ function SahfTeaserCard() {
         <p className="mt-1 max-w-[18ch] text-sm text-white/70">
           Gestão de Legado Contínua para clientes do programa premium.
         </p>
-        <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-gold-light/90 group-hover:translate-x-0.5 transition-transform">
-          Saber mais
-          <ArrowRight className="h-3.5 w-3.5" />
+        <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-gold-light/90">
+          Em breve
         </span>
       </div>
     </div>
