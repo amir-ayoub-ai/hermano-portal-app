@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Loader2, Lock, Mail } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,10 @@ export default function Login() {
   useEffect(() => {
     if (loading) return;
     if (user) {
+      if (user.mustChangePassword) {
+        navigate("/change-password", { replace: true });
+        return;
+      }
       const target = user.role === "admin" ? "/admin" : "/dashboard";
       const from = (location.state as { from?: { pathname?: string } })?.from?.pathname;
       navigate(from && from !== "/" ? from : target, { replace: true });
@@ -110,6 +114,15 @@ export default function Login() {
               "Entrar"
             )}
           </Button>
+
+          <div className="text-center">
+            <Link
+              to="/esqueci-senha"
+              className="text-xs text-muted-foreground underline-offset-4 hover:text-accent hover:underline"
+            >
+              Esqueci minha senha
+            </Link>
+          </div>
         </form>
 
         <p className="mt-8 text-center text-xs text-muted-foreground">

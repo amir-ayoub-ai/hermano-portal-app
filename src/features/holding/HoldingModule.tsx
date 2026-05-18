@@ -1,41 +1,85 @@
-import { CheckCircle2, Circle, Clock, Loader2 } from "lucide-react";
+import {
+  CalendarClock,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Circle,
+  Clock,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
+import { useState } from "react";
 import { ModuleHeader } from "@/components/shared/ModuleHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { MOCK_PHASES, type Phase, type PhaseTask } from "@/lib/mockData";
+import { useAuth } from "@/contexts/AuthContext";
+import { useHoldingPhases, type RemotePhase, type RemoteTaskStatus } from "@/lib/holding";
 
-const STATUS_LABEL: Record<PhaseTask["status"], string> = {
+const STATUS_LABEL: Record<RemoteTaskStatus, string> = {
   pending: "Pendente",
-  "in-progress": "Em andamento",
+  in_progress: "Em andamento",
   completed: "Concluída",
 };
 
-function StatusIcon({ status }: { status: PhaseTask["status"] }) {
+function StatusIcon({ status }: { status: RemoteTaskStatus }) {
   if (status === "completed")
     return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
-  if (status === "in-progress")
+  if (status === "in_progress")
     return <Loader2 className="h-4 w-4 animate-spin text-accent" />;
   return <Circle className="h-4 w-4 text-muted-foreground" />;
 }
 
-function PhaseCard({ phase }: { phase: Phase }) {
+function formatDate(iso: string | null): string | null {
+  if (!iso) return null;
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return null;
+  }
+}
+
+function PhaseCard({ phase }: { phase: RemotePhase }) {
+  const [open, setOpen] = useState(phase.status === "in_progress");
+  const estimated = formatDate(phase.estimatedDate);
+
   return (
     <Card
       className={
-        phase.status === "in-progress"
-          ? "border-accent/40 shadow-gold"
-          : ""
+        phase.status === "in_progress" ? "border-accent/40 shadow-gold" : ""
       }
     >
       <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <CardTitle className="text-lg">{phase.name}</CardTitle>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {phase.tasks.length} tarefas ·{" "}
-              {phase.tasks.filter((t) => t.status === "completed").length}{" "}
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="-mx-2 -my-1 flex w-full items-start justify-between gap-3 rounded-lg px-2 py-1 text-left transition hover:bg-muted/30"
+        >
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              {open ? (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              )}
+              <CardTitle className="text-lg">{phase.name}</CardTitle>
+            </div>
+            <p className="mt-1 pl-6 text-xs text-muted-foreground">
+              {phase.subtasks.length} tarefas ·{" "}
+              {phase.subtasks.filter((t) => t.status === "completed").length}{" "}
               concluídas
+              {estimated && (
+                <>
+                  {" · "}
+                  <CalendarClock className="ml-1 inline h-3 w-3" /> previsão{" "}
+                  {estimated}
+                </>
+              )}
             </p>
           </div>
           {phase.status === "completed" && (
@@ -44,7 +88,7 @@ function PhaseCard({ phase }: { phase: Phase }) {
               Concluída
             </Badge>
           )}
-          {phase.status === "in-progress" && (
+          {phase.status === "in_progress" && (
             <Badge variant="gold" className="gap-1">
               <Clock className="h-3 w-3" />
               Em andamento
@@ -53,62 +97,111 @@ function PhaseCard({ phase }: { phase: Phase }) {
           {phase.status === "pending" && (
             <Badge variant="muted">Aguardando</Badge>
           )}
-        </div>
+        </button>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Progresso</span>
-            <span className="font-medium text-foreground">
-              {phase.progress}%
-            </span>
+            <span className="font-medium text-foreground">{phase.progress}%</span>
           </div>
           <Progress value={phase.progress} />
         </div>
 
-        <div className="space-y-2 border-t border-border/40 pt-3">
-          {phase.tasks.map((task) => (
-            <div
-              key={task.id}
-              className="flex items-center justify-between gap-3 text-sm"
-            >
-              <div className="flex items-center gap-2">
-                <StatusIcon status={task.status} />
-                <span
-                  className={
-                    task.status === "completed"
-                      ? "text-muted-foreground line-through"
-                      : ""
-                  }
+        {open && phase.subtasks.length > 0 && (
+          <div className="space-y-2 border-t border-border/40 pt-3">
+            {phase.subtasks.map((task) => {
+              const taskDate = formatDate(task.estimatedDate);
+              return (
+                <div
+                  key={task.id}
+                  className="flex items-start justify-between gap-3 rounded-md border border-border/40 bg-background/30 px-3 py-2 text-sm"
                 >
-                  {task.name}
-                </span>
-              </div>
-              <span className="hidden text-xs text-muted-foreground sm:inline">
-                {STATUS_LABEL[task.status]}
-              </span>
-            </div>
-          ))}
-        </div>
+                  <div className="flex flex-1 items-start gap-2">
+                    <StatusIcon status={task.status} />
+                    <div className="flex-1">
+                      <p
+                        className={
+                          task.status === "completed"
+                            ? "text-muted-foreground line-through"
+                            : ""
+                        }
+                      >
+                        {task.name}
+                      </p>
+                      {taskDate && (
+                        <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                          <CalendarClock className="h-3 w-3" />
+                          previsão {taskDate}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <span className="hidden text-xs text-muted-foreground sm:inline">
+                    {STATUS_LABEL[task.status]}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
 
 export default function HoldingModule() {
+  const { user } = useAuth();
+  const clientId = user?.clientId ?? null;
+  const { phases, loading, error, message } = useHoldingPhases(clientId);
+
   return (
     <>
       <ModuleHeader
         eyebrow="Etapa 3"
         title="Holding Familiar"
-        description="Estruturação e constituição da sua holding familiar. Acompanhe abaixo o passo-a-passo e o status de cada etapa em tempo real."
+        description="Acompanhe abaixo o passo-a-passo da constituição da sua holding, com status e previsões atualizadas em tempo real."
       />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {MOCK_PHASES.map((phase) => (
-          <PhaseCard key={phase.id} phase={phase} />
-        ))}
-      </div>
+      {loading && (
+        <Card>
+          <CardContent className="flex items-center justify-center gap-3 p-10 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Carregando suas fases…
+          </CardContent>
+        </Card>
+      )}
+
+      {!loading && error && (
+        <Card>
+          <CardContent className="p-8 text-center text-sm text-destructive">
+            {error}
+          </CardContent>
+        </Card>
+      )}
+
+      {!loading && !error && phases.length === 0 && (
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-accent">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <p className="font-serif text-lg">Sua holding ainda não começou</p>
+            <p className="max-w-md text-sm text-muted-foreground">
+              {message ||
+                "Assim que nossa equipe iniciar a execução da sua holding, as etapas e tarefas aparecerão aqui."}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {!loading && !error && phases.length > 0 && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {phases.map((phase) => (
+            <PhaseCard key={phase.id} phase={phase} />
+          ))}
+        </div>
+      )}
     </>
   );
 }

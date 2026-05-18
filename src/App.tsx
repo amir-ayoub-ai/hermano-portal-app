@@ -7,6 +7,8 @@ import { StageGuard } from "@/components/shared/StageGuard";
 import { AppShell } from "@/components/shared/AppShell";
 
 import Login from "@/features/auth/Login";
+import ChangePassword from "@/features/auth/ChangePassword";
+import ForgotPassword from "@/features/auth/ForgotPassword";
 import HomeScreen from "@/features/home/HomeScreen";
 import SVModule from "@/features/sv/SVModule";
 import CroquiModule from "@/features/croqui/CroquiModule";
@@ -31,6 +33,16 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Login />} />
+            <Route path="/esqueci-senha" element={<ForgotPassword />} />
+
+            <Route
+              path="/change-password"
+              element={
+                <ProtectedRoute>
+                  <ChangePassword />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/dashboard"

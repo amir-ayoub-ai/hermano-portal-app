@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { Plus, Search, Users } from "lucide-react";
-import { MOCK_CLIENTS } from "@/lib/mockData";
+import { Loader2, Plus, Search, Users } from "lucide-react";
+import { toast } from "sonner";
 import type { Client } from "@/types/domain";
+import { useClients } from "@/lib/clients";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { ClientDetail } from "./ClientDetail";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Admin() {
-  const [clients, setClients] = useState<Client[]>(MOCK_CLIENTS);
+  const { clients, loading, error, updateClient } = useClients();
   const [selected, setSelected] = useState<Client | null>(null);
   const [query, setQuery] = useState("");
 
@@ -24,21 +25,21 @@ export default function Admin() {
     );
   }, [clients, query]);
 
-  function handleStageChange(clientId: string, stage: Client["currentStage"]) {
-    setClients((prev) =>
-      prev.map((c) => (c.id === clientId ? { ...c, currentStage: stage } : c)),
-    );
-    if (selected?.id === clientId) {
-      setSelected({ ...selected, currentStage: stage });
+  async function handleStageChange(clientId: string, stage: Client["currentStage"]) {
+    try {
+      const updated = await updateClient(clientId, { currentStage: stage });
+      if (selected?.id === clientId) setSelected(updated);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao atualizar cliente");
     }
   }
 
-  function handleSahfChange(clientId: string, hasSahf: boolean) {
-    setClients((prev) =>
-      prev.map((c) => (c.id === clientId ? { ...c, hasSahf } : c)),
-    );
-    if (selected?.id === clientId) {
-      setSelected({ ...selected, hasSahf });
+  async function handleSahfChange(clientId: string, hasSahf: boolean) {
+    try {
+      const updated = await updateClient(clientId, { hasSahf });
+      if (selected?.id === clientId) setSelected(updated);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao atualizar cliente");
     }
   }
 
@@ -49,6 +50,14 @@ export default function Admin() {
         onBack={() => setSelected(null)}
         onStageChange={(stage) => handleStageChange(selected.id, stage)}
         onSahfChange={(v) => handleSahfChange(selected.id, v)}
+        onPasswordRegenerated={(pw) => {
+          setSelected({
+            ...selected,
+            pendingTempPassword: pw,
+            mustChangePassword: true,
+            passwordResetPending: false,
+          });
+        }}
       />
     );
   }
@@ -62,7 +71,7 @@ export default function Admin() {
           </p>
           <h1 className="mt-1 font-serif text-3xl">Clientes</h1>
         </div>
-        <Button variant="gold">
+        <Button variant="gold" disabled>
           <Plus className="h-4 w-4" />
           Novo cliente
         </Button>
@@ -92,7 +101,22 @@ export default function Admin() {
             </CardContent>
           </Card>
 
-          <ClientList clients={filtered} onSelect={setSelected} />
+          {loading ? (
+            <Card>
+              <CardContent className="flex items-center justify-center gap-3 p-10 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Carregando clientes…
+              </CardContent>
+            </Card>
+          ) : error ? (
+            <Card>
+              <CardContent className="p-10 text-center text-sm text-destructive">
+                {error}
+              </CardContent>
+            </Card>
+          ) : (
+            <ClientList clients={filtered} onSelect={setSelected} />
+          )}
         </TabsContent>
 
         <TabsContent value="conteudo">

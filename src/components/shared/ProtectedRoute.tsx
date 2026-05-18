@@ -22,6 +22,14 @@ export function ProtectedRoute({ children, role }: ProtectedRouteProps) {
 
   if (!user) return <Navigate to="/" replace state={{ from: location }} />;
 
+  // Força troca de senha temporária antes de acessar qualquer outra rota
+  if (
+    user.mustChangePassword &&
+    location.pathname !== "/change-password"
+  ) {
+    return <Navigate to="/change-password" replace />;
+  }
+
   if (role && user.role !== role) {
     return <Navigate to={user.role === "admin" ? "/admin" : "/dashboard"} replace />;
   }

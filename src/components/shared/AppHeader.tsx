@@ -19,8 +19,8 @@ export function AppHeader() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  function handleSignOut() {
-    signOut();
+  async function handleSignOut() {
+    await signOut();
     navigate("/", { replace: true });
   }
 

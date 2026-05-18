@@ -8,9 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Stage, User } from "@/types/domain";
-import { MOCK_USERS } from "@/lib/mockData";
-
-const STORAGE_KEY = "sahf.auth.v1";
+import { api, ApiError } from "@/lib/api";
 
 interface AuthState {
   user: User | null;
@@ -19,83 +17,134 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signOut: () => void;
-  /** Permite simular avanço de etapa no demo (admin OU dev). */
-  setClientStage: (stage: Stage) => void;
-  /** Liga/desliga o add-on SAHF para o cliente logado (demo). */
-  setClientSahf: (hasSahf: boolean) => void;
+  signOut: () => Promise<void>;
+  /** Atualiza a etapa do cliente logado (admin altera via painel admin). */
+  setClientStage: (stage: Stage) => Promise<void>;
+  /** Liga/desliga SAHF do cliente logado. */
+  setClientSahf: (hasSahf: boolean) => Promise<void>;
+  /** Recarrega o usuário do servidor. */
+  refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+interface MeResponse {
+  id: string;
+  email: string;
+  fullName: string;
+  role: "admin" | "client";
+  clientId: string | null;
+  currentStage: Stage | null;
+  hasSahf: boolean;
+  mustChangePassword: boolean;
+}
+
+function toUser(me: MeResponse): User {
+  return {
+    id: me.id,
+    email: me.email,
+    fullName: me.fullName,
+    role: me.role,
+    clientId: me.clientId ?? undefined,
+    currentStage: me.currentStage ?? undefined,
+    hasSahf: me.hasSahf,
+    mustChangePassword: me.mustChangePassword,
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ user: null, loading: true });
 
-  useEffect(() => {
+  const loadMe = useCallback(async () => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const user = raw ? (JSON.parse(raw) as User) : null;
-      setState({ user, loading: false });
-    } catch {
-      setState({ user: null, loading: false });
+      const me = await api.get<MeResponse>("/api/me");
+      setState({ user: toUser(me), loading: false });
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        setState({ user: null, loading: false });
+      } else {
+        console.error("[auth] erro ao buscar /me:", err);
+        setState({ user: null, loading: false });
+      }
     }
   }, []);
 
-  const persist = useCallback((user: User | null) => {
-    if (user) localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    else localStorage.removeItem(STORAGE_KEY);
-  }, []);
+  useEffect(() => {
+    void loadMe();
+  }, [loadMe]);
 
   const signIn = useCallback<AuthContextValue["signIn"]>(
     async (email, password) => {
-      await new Promise((r) => setTimeout(r, 350));
-      const found = MOCK_USERS.find(
-        (u) =>
-          u.email.toLowerCase() === email.trim().toLowerCase() &&
-          u.password === password,
-      );
-      if (!found) return { error: "E-mail ou senha incorretos." };
-      const { password: _pw, ...user } = found;
-      void _pw;
-      persist(user);
-      setState({ user, loading: false });
-      return {};
+      try {
+        await api.post("/api/auth/sign-in/email", { email, password });
+        await loadMe();
+        return {};
+      } catch (err) {
+        if (err instanceof ApiError) {
+          return {
+            error:
+              err.status === 401 || err.status === 400
+                ? "E-mail ou senha incorretos."
+                : err.message,
+          };
+        }
+        return { error: "Falha de conexão com o servidor." };
+      }
     },
-    [persist],
+    [loadMe],
   );
 
-  const signOut = useCallback(() => {
-    persist(null);
+  const signOut = useCallback(async () => {
+    try {
+      await api.post("/api/auth/sign-out");
+    } catch {
+      // ignora — vamos limpar o estado local de qualquer forma
+    }
     setState({ user: null, loading: false });
-  }, [persist]);
+  }, []);
+
+  const updateOwnClient = useCallback(
+    async (patch: { currentStage?: Stage; hasSahf?: boolean }) => {
+      const user = state.user;
+      if (!user || user.role !== "client") return;
+
+      // Atualiza otimisticamente
+      setState((prev) =>
+        prev.user ? { ...prev, user: { ...prev.user, ...patch } } : prev,
+      );
+
+      try {
+        // Cliente atualizando próprios dados — endpoint admin precisaria, mas
+        // mantemos só estado local enquanto o backend não tem self-update.
+        // Em produção, a etapa virá do ClickUp via webhook.
+        await loadMe();
+      } catch {
+        // mantém estado otimista
+      }
+    },
+    [loadMe, state.user],
+  );
 
   const setClientStage = useCallback<AuthContextValue["setClientStage"]>(
-    (stage) => {
-      setState((prev) => {
-        if (!prev.user) return prev;
-        const user = { ...prev.user, currentStage: stage };
-        persist(user);
-        return { ...prev, user };
-      });
-    },
-    [persist],
+    (stage) => updateOwnClient({ currentStage: stage }),
+    [updateOwnClient],
   );
 
   const setClientSahf = useCallback<AuthContextValue["setClientSahf"]>(
-    (hasSahf) => {
-      setState((prev) => {
-        if (!prev.user) return prev;
-        const user = { ...prev.user, hasSahf };
-        persist(user);
-        return { ...prev, user };
-      });
-    },
-    [persist],
+    (hasSahf) => updateOwnClient({ hasSahf }),
+    [updateOwnClient],
   );
 
   const value = useMemo<AuthContextValue>(
-    () => ({ ...state, signIn, signOut, setClientStage, setClientSahf }),
-    [state, signIn, signOut, setClientStage, setClientSahf],
+    () => ({
+      ...state,
+      signIn,
+      signOut,
+      setClientStage,
+      setClientSahf,
+      refresh: loadMe,
+    }),
+    [state, signIn, signOut, setClientStage, setClientSahf, loadMe],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

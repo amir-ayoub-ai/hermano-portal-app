@@ -13,10 +13,19 @@ export interface Client {
   fullName: string;
   email: string;
   avatarUrl?: string;
+  whatsapp?: string;
+  cpf?: string;
+  driveUrl?: string;
+  whatsappGroupUrl?: string;
   currentStage: Stage;
   hasSahf: boolean;
   createdAt: string;
   clickupTaskId?: string;
+  /** Senha temporária pendente — admin pode copiar pra mandar via WhatsApp. */
+  pendingTempPassword?: string;
+  mustChangePassword?: boolean;
+  passwordResetPending?: boolean;
+  passwordResetRequestedAt?: string;
 }
 
 export interface User {
@@ -25,8 +34,10 @@ export interface User {
   fullName: string;
   role: Role;
   avatarUrl?: string;
-  currentStage?: Stage; // só para clientes
-  hasSahf?: boolean;     // só para clientes — contratou o SAHF?
+  clientId?: string;          // id do registro em `clients` (só para clientes)
+  currentStage?: Stage;       // só para clientes
+  hasSahf?: boolean;          // só para clientes — contratou o SAHF?
+  mustChangePassword?: boolean; // força tela de trocar senha no 1º login
 }
 
 export interface ModuleMeta {
