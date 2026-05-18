@@ -6,8 +6,17 @@
  * Em prod: VITE_API_URL = https://api.garcez.com.br (ou o que for)
  */
 
+/**
+ * Resolução da URL da API:
+ *   1. VITE_API_URL (env var) → sempre vence (útil pra staging/QA)
+ *   2. PROD build → https://api.luizgarcez.com.br (padrão de produção)
+ *   3. DEV local → http://localhost:3000
+ */
 const API_URL =
-  import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+  import.meta.env.VITE_API_URL ??
+  (import.meta.env.PROD
+    ? "https://api.luizgarcez.com.br"
+    : "http://localhost:3000");
 
 export class ApiError extends Error {
   constructor(
