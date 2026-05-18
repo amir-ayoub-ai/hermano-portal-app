@@ -229,7 +229,7 @@ export default function HoldingModule() {
               </div>
               <div>
                 <p className="font-serif text-2xl">
-                  Sua holding está em{" "}
+                  Sua holding está{" "}
                   <span className="gold-gradient-text">{totalProgress}%</span>{" "}
                   concluída
                 </p>
