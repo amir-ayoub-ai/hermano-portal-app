@@ -1,0 +1,33 @@
+{
+  "name": "Portal do Cliente — Garcez Consultoria",
+  "short_name": "Garcez",
+  "description": "Portal do Cliente da Garcez Consultoria Jurídica — acompanhamento do planejamento patrimonial e holding familiar.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#121D28",
+  "theme_color": "#121D28",
+  "lang": "pt-BR",
+  "categories": ["business", "finance"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
