@@ -20,6 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getInitials } from "@/lib/utils";
 import { regeneratePassword } from "@/lib/clients";
+import { HoldingPhasesView } from "@/features/holding/HoldingPhasesView";
 
 interface ClientDetailProps {
   client: Client;
@@ -289,11 +290,19 @@ export function ClientDetail({
         </TabsContent>
 
         <TabsContent value="progresso">
-          <Card>
-            <CardContent className="p-10 text-center text-sm text-muted-foreground">
-              Acompanhe aqui o progresso detalhado das fases do cliente.
-            </CardContent>
-          </Card>
+          {client.currentStage === "holding" ? (
+            <HoldingPhasesView
+              clientId={client.id}
+              emptyMessage="Este cliente ainda não tem tarefas de Execução da Holding criadas no ClickUp. Quando a equipe criar, aparecem aqui automaticamente."
+            />
+          ) : (
+            <Card>
+              <CardContent className="p-10 text-center text-sm text-muted-foreground">
+                Fases da Holding aparecem aqui quando o cliente entrar nessa etapa
+                (atualmente: <strong>{MODULES[client.currentStage].title}</strong>).
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="arquivos">
