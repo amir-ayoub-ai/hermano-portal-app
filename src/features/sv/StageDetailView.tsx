@@ -2,10 +2,9 @@
  * View compartilhada por Sessão de Viabilidade (etapa SV) e
  * Projeto Estrutural (etapa Croqui).
  *
- * Mostra 3 blocos:
+ * Mostra 2 blocos:
  *   - Checklist da etapa (status visual baseado no status atual no ClickUp)
- *   - Reunião marcada (quando o status no ClickUp indicar reunião agendada)
- *   - Documentos da etapa (link Drive vindo do ClickUp)
+ *   - Reunião marcada (com título grande, data + horário, CTA dourado)
  */
 import {
   CalendarClock,
@@ -13,14 +12,12 @@ import {
   Circle,
   ClipboardList,
   ExternalLink,
-  FileText,
   Loader2,
   MapPin,
   Video,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import type { StageInfo } from "@/lib/stage";
 
 interface ChecklistItem {
@@ -125,9 +122,9 @@ export function StageDetailView({
     : buildChecklist(stage, info?.status);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
+    <div className="grid gap-6 lg:grid-cols-2">
       {/* Checklist */}
-      <Card className="lg:col-span-2">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <ClipboardList className="h-5 w-5 text-accent" />
@@ -165,84 +162,66 @@ export function StageDetailView({
         </CardContent>
       </Card>
 
-      <div className="space-y-6">
-        {/* Reunião marcada */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Reunião marcada</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {info?.meeting ? (
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <CalendarClock className="mt-1 h-5 w-5 text-accent" />
-                  <div>
-                    <p className="font-medium">{info.meeting.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDateTime(info.meeting.date)}
-                    </p>
-                  </div>
-                </div>
-                {info.meeting.link && (
-                  <Button asChild variant="outline" size="sm" className="w-full">
-                    <a
-                      href={info.meeting.link}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <Video className="h-4 w-4" />
-                      Acessar reunião online
-                      <ExternalLink className="ml-auto h-3 w-3" />
-                    </a>
-                  </Button>
-                )}
-                {info.meeting.address && (
-                  <div className="flex items-start gap-2 rounded-lg border border-border/50 bg-background/40 p-3 text-sm">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                    <span>{info.meeting.address}</span>
-                  </div>
-                )}
+      {/* Reunião marcada — card grande, fonte destacada, CTA dourado */}
+      <Card
+        className={
+          info?.meeting
+            ? "border-accent/30 bg-gradient-to-br from-card to-card/40"
+            : ""
+        }
+      >
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <CalendarClock className="h-5 w-5 text-accent" />
+            Reunião marcada
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {info?.meeting ? (
+            <div className="space-y-6">
+              <div>
+                <p className="font-serif text-2xl tracking-tight">
+                  {info.meeting.title}
+                </p>
+                <p className="mt-2 text-base text-muted-foreground">
+                  {formatDateTime(info.meeting.date)}
+                </p>
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Sem reunião agendada no momento. Nossa equipe entrará em contato
-                em breve pra marcar.
-              </p>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Documentos */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Documentos da etapa</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {info?.driveUrl ? (
-              <Button
-                asChild
-                variant="outline"
-                className="w-full justify-between"
-              >
-                <a href={info.driveUrl} target="_blank" rel="noreferrer">
-                  <span className="flex items-center gap-2 truncate">
-                    <FileText className="h-4 w-4 text-accent" />
-                    Abrir pasta de documentos
-                  </span>
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </Button>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Sua pasta de documentos ainda não foi disponibilizada.
-              </p>
-            )}
-            <Badge variant="muted" className="mt-2">
-              Atualizado em tempo real
-            </Badge>
-          </CardContent>
-        </Card>
-      </div>
+              {info.meeting.link && (
+                <Button
+                  asChild
+                  variant="gold"
+                  size="lg"
+                  className="w-full"
+                >
+                  <a
+                    href={info.meeting.link}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Video className="h-5 w-5" />
+                    Acessar reunião online
+                    <ExternalLink className="ml-auto h-4 w-4" />
+                  </a>
+                </Button>
+              )}
+
+              {info.meeting.address && (
+                <div className="flex items-start gap-2 rounded-lg border border-border/50 bg-background/40 p-4 text-sm">
+                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+                  <span>{info.meeting.address}</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="py-6 text-base text-muted-foreground">
+              Sem reunião agendada no momento. Nossa equipe entrará em contato
+              em breve pra marcar.
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
