@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Loader2, Plus, Search, Users } from "lucide-react";
 import { toast } from "sonner";
 import type { Client } from "@/types/domain";
@@ -16,6 +17,22 @@ export default function Admin() {
   const [selected, setSelected] = useState<Client | null>(null);
   const [query, setQuery] = useState("");
   const [newClientOpen, setNewClientOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Abre cliente automaticamente quando a URL trouxer ?client=ID
+  // (usado pelas notificações pra navegar direto pro cliente)
+  useEffect(() => {
+    const id = searchParams.get("client");
+    if (id && !selected && clients.length > 0) {
+      const found = clients.find((c) => c.id === id);
+      if (found) {
+        setSelected(found);
+        // Limpa o param da URL pra evitar reabrir após fechar
+        searchParams.delete("client");
+        setSearchParams(searchParams, { replace: true });
+      }
+    }
+  }, [searchParams, setSearchParams, clients, selected]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

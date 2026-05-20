@@ -100,6 +100,18 @@ function formatDate(iso: string | null): string | null {
   }
 }
 
+function DeliveryDateBadge({ date }: { date: string }) {
+  return (
+    <Badge
+      variant="muted"
+      className="gap-1 border-accent/30 bg-accent/10 text-foreground"
+    >
+      <CalendarClock className="h-3 w-3" />
+      Previsão {date}
+    </Badge>
+  );
+}
+
 function PhaseCard({ phase }: { phase: RemotePhase }) {
   const [open, setOpen] = useState(
     phase.status === "in_progress" ||
@@ -135,16 +147,12 @@ function PhaseCard({ phase }: { phase: RemotePhase }) {
               {phase.subtasks.length} tarefas ·{" "}
               {phase.subtasks.filter((t) => t.status === "completed").length}{" "}
               concluídas
-              {estimated && (
-                <>
-                  {" · "}
-                  <CalendarClock className="ml-1 inline h-3 w-3" /> previsão{" "}
-                  {estimated}
-                </>
-              )}
             </p>
           </div>
-          <StatusBadge status={phase.status} />
+          <div className="flex flex-col items-end gap-1.5">
+            <StatusBadge status={phase.status} />
+            {estimated && <DeliveryDateBadge date={estimated} />}
+          </div>
         </button>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -186,28 +194,22 @@ function PhaseCard({ phase }: { phase: RemotePhase }) {
                 >
                   <div className="flex flex-1 items-start gap-2">
                     <StatusIcon status={task.status} />
-                    <div className="flex-1">
-                      <p
-                        className={cn(
-                          task.status === "completed" &&
-                            "text-muted-foreground line-through",
-                          task.isBlocked &&
-                            "font-medium text-rose-700 dark:text-rose-400",
-                        )}
-                      >
-                        {task.name}
-                      </p>
-                      {taskDate && (
-                        <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                          <CalendarClock className="h-3 w-3" />
-                          previsão {taskDate}
-                        </p>
+                    <p
+                      className={cn(
+                        "flex-1",
+                        task.status === "completed" &&
+                          "text-muted-foreground line-through",
+                        task.isBlocked &&
+                          "font-medium text-rose-700 dark:text-rose-400",
                       )}
-                    </div>
+                    >
+                      {task.name}
+                    </p>
                   </div>
-                  <span className="hidden text-xs sm:inline">
+                  <div className="hidden flex-col items-end gap-1 sm:flex">
                     <StatusBadge status={task.status} />
-                  </span>
+                    {taskDate && <DeliveryDateBadge date={taskDate} />}
+                  </div>
                 </div>
               );
             })}

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
+import { NotificationsBell } from "./NotificationsBell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,17 +36,24 @@ export function AppHeader() {
 
         <div className="flex items-center gap-2">
           {user?.role === "admin" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hidden sm:inline-flex"
-              asChild
-            >
-              <Link to="/admin">
-                <ShieldCheck className="h-4 w-4" />
-                Admin
-              </Link>
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden sm:inline-flex"
+                asChild
+              >
+                <Link to="/admin">
+                  <ShieldCheck className="h-4 w-4" />
+                  Admin
+                </Link>
+              </Button>
+              <NotificationsBell
+                onOpenClient={(clientId) =>
+                  navigate(`/admin?client=${clientId}`)
+                }
+              />
+            </>
           )}
           <ThemeToggle />
 
