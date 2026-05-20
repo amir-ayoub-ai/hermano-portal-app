@@ -21,6 +21,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getInitials } from "@/lib/utils";
 import { regeneratePassword } from "@/lib/clients";
 import { HoldingPhasesView } from "@/features/holding/HoldingPhasesView";
+import { StageDetailView } from "@/features/sv/StageDetailView";
+import { useStageInfo } from "@/lib/stage";
+
+/**
+ * Wrapper interno: roda o hook useStageInfo e renderiza StageDetailView.
+ * Usado nas tabs do admin pra mostrar SV e Projeto Estrutural igual o cliente vê.
+ */
+function AdminStagePanel({
+  clientId,
+  stage,
+}: {
+  clientId: string;
+  stage: "sv" | "croqui";
+}) {
+  const { info, loading, error } = useStageInfo(clientId, stage);
+  return (
+    <StageDetailView stage={stage} info={info} loading={loading} error={error} />
+  );
+}
 
 interface ClientDetailProps {
   client: Client;
@@ -119,9 +138,11 @@ export function ClientDetail({
       </Card>
 
       <Tabs defaultValue="permissoes">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="permissoes">Permissões</TabsTrigger>
-          <TabsTrigger value="progresso">Progresso (ClickUp)</TabsTrigger>
+          <TabsTrigger value="sv">Sessão de Viabilidade</TabsTrigger>
+          <TabsTrigger value="projeto">Projeto Estrutural</TabsTrigger>
+          <TabsTrigger value="holding">Holding</TabsTrigger>
           <TabsTrigger value="arquivos">Arquivos</TabsTrigger>
         </TabsList>
 
@@ -289,7 +310,15 @@ export function ClientDetail({
           </Card>
         </TabsContent>
 
-        <TabsContent value="progresso">
+        <TabsContent value="sv">
+          <AdminStagePanel clientId={client.id} stage="sv" />
+        </TabsContent>
+
+        <TabsContent value="projeto">
+          <AdminStagePanel clientId={client.id} stage="croqui" />
+        </TabsContent>
+
+        <TabsContent value="holding">
           {client.currentStage === "holding" ? (
             <HoldingPhasesView
               clientId={client.id}
