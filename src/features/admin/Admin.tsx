@@ -77,6 +77,10 @@ export default function Admin() {
             passwordResetPending: false,
           });
         }}
+        onDeleted={() => {
+          setSelected(null);
+          void reload();
+        }}
       />
     );
   }

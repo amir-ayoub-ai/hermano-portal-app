@@ -8,6 +8,7 @@ import {
   KeyRound,
   Loader2,
   Lock,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Client, Stage } from "@/types/domain";
@@ -19,7 +20,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getInitials } from "@/lib/utils";
-import { regeneratePassword } from "@/lib/clients";
+import { regeneratePassword, deleteClient } from "@/lib/clients";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { HoldingPhasesView } from "@/features/holding/HoldingPhasesView";
 import { StageDetailView } from "@/features/sv/StageDetailView";
 import { useStageInfo } from "@/lib/stage";
@@ -47,6 +58,7 @@ interface ClientDetailProps {
   onStageChange: (stage: Stage) => void;
   onSahfChange: (hasSahf: boolean) => void;
   onPasswordRegenerated?: (tempPassword: string) => void;
+  onDeleted?: (clientId: string) => void;
 }
 
 export function ClientDetail({
@@ -55,8 +67,12 @@ export function ClientDetail({
   onStageChange,
   onSahfChange,
   onPasswordRegenerated,
+  onDeleted,
 }: ClientDetailProps) {
   const [regenerating, setRegenerating] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   async function copyPassword(pw: string) {
     try {
@@ -64,6 +80,26 @@ export function ClientDetail({
       toast.success("Senha copiada — cole no WhatsApp do cliente.");
     } catch {
       toast.error("Não consegui copiar. Selecione o texto manualmente.");
+    }
+  }
+
+  async function handleDelete() {
+    if (deleteConfirmText.trim().toLowerCase() !== "excluir") {
+      toast.error("Digite EXCLUIR pra confirmar.");
+      return;
+    }
+    setDeleting(true);
+    try {
+      await deleteClient(client.id);
+      toast.success(`${client.fullName} foi excluído.`);
+      onDeleted?.(client.id);
+      setDeleteOpen(false);
+      onBack();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao excluir");
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmText("");
     }
   }
 
@@ -130,9 +166,20 @@ export function ClientDetail({
                 </Badge>
               )}
             </div>
-            <Button variant="gold" size="sm" onClick={advance}>
-              Avançar etapa
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="gold" size="sm" onClick={advance}>
+                Avançar etapa
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => setDeleteOpen(true)}
+              >
+                <Trash2 className="h-4 w-4" />
+                Excluir cliente
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -342,6 +389,74 @@ export function ClientDetail({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog de confirmação de exclusão */}
+      <Dialog open={deleteOpen} onOpenChange={(v) => {
+        setDeleteOpen(v);
+        if (!v) setDeleteConfirmText("");
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-destructive/15 text-destructive">
+              <Trash2 className="h-5 w-5" />
+            </div>
+            <DialogTitle>Excluir cliente</DialogTitle>
+            <DialogDescription>
+              Esta ação é <strong className="text-destructive">irreversível</strong>.
+              O cliente <strong className="text-foreground">{client.fullName}</strong>{" "}
+              será removido permanentemente do app, junto com a conta de login,
+              senhas e vínculos. Os dados no ClickUp não serão afetados.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirm">
+              Pra confirmar, digite <strong>EXCLUIR</strong> abaixo:
+            </Label>
+            <Input
+              id="confirm"
+              autoFocus
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="EXCLUIR"
+            />
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setDeleteOpen(false);
+                setDeleteConfirmText("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={
+                deleting ||
+                deleteConfirmText.trim().toLowerCase() !== "excluir"
+              }
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Excluindo…
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  Excluir definitivamente
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

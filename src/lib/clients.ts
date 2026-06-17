@@ -82,6 +82,10 @@ export async function createClient(
   };
 }
 
+export async function deleteClient(clientId: string): Promise<void> {
+  await api.delete(`/api/clients/${clientId}`);
+}
+
 export function useClients() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
