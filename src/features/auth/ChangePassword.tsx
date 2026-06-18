@@ -10,13 +10,13 @@
  */
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Lock, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Logo } from "@/components/shared/Logo";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
@@ -96,42 +96,37 @@ export default function ChangePassword() {
               <Label htmlFor="current">
                 {forced ? "Senha temporária recebida" : "Senha atual"}
               </Label>
-              <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="current"
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
+              <PasswordInput
+                id="current"
+                required
+                autoComplete="current-password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="new">Nova senha</Label>
-              <Input
+              <PasswordInput
                 id="new"
-                type="password"
                 required
                 autoComplete="new-password"
                 minLength={8}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="mínimo 8 caracteres"
+                leftIcon={null}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="confirm">Confirmar nova senha</Label>
-              <Input
+              <PasswordInput
                 id="confirm"
-                type="password"
                 required
                 autoComplete="new-password"
                 value={confirmPassword}
+                leftIcon={null}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </div>
