@@ -1,1 +1,8 @@
-/*    /index.html   200
+# Stub temporário até a API subir no Coolify amanhã.
+# Faz /api/* responder 401 imediatamente em vez de hang/timeout no DNS de
+# api.hermanocorradi.com.br (que ainda não existe). AuthContext trata 401
+# como "deslogado" e cai gracefully no Login.
+/api/*    /api-stub.json    401
+
+# SPA fallback do React Router (mantido)
+/*        /index.html       200

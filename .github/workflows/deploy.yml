@@ -31,6 +31,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
+        env:
+          # Aponta pra própria origem (Pages) até a API real do Coolify subir.
+          # _redirects intercepta /api/* e devolve 401 → AuthContext cai no Login.
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: pnpm build
 
       - name: Deploy to Cloudflare Pages
