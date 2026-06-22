@@ -33,14 +33,32 @@ async function request<T>(
   path: string,
   init: RequestInit = {},
 ): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    ...init,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...init.headers,
-    },
-  });
+  // Timeout de 5s — protege contra DNS hang quando a API ainda não existe
+  // (caso típico: app no preview e api.hermanocorradi.com.br ainda não foi
+  // cadastrado, ou Coolify cai). AuthContext trata o AbortError como
+  // "deslogado" e renderiza o Login normalmente.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...init,
+      signal: controller.signal,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...init.headers,
+      },
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new ApiError(0, "Tempo esgotado ao contatar a API");
+    }
+    throw new ApiError(0, err instanceof Error ? err.message : "Erro de rede");
+  }
+  clearTimeout(timeoutId);
 
   const text = await res.text();
   const data = text ? safeJsonParse(text) : null;
@@ -51,6 +69,12 @@ async function request<T>(
         ? String(data.error)
         : null) ?? `HTTP ${res.status}`;
     throw new ApiError(res.status, message, data);
+  }
+
+  // Detecta resposta-stub (proteção pra quando a API real não está disponível
+  // e algum rewrite serve um JSON-stub com 200). Tratado como "deslogado".
+  if (data && typeof data === "object" && "stub" in data) {
+    throw new ApiError(401, "API stub — não autenticado", data);
   }
 
   return data as T;

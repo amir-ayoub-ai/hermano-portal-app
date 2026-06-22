@@ -1,9 +1,9 @@
 # Stub temporário até a API subir no Coolify amanhã.
-# Faz /api/* responder 404 imediatamente em vez de hang/timeout no DNS de
-# api.hermanocorradi.com.br (que ainda não existe). AuthContext recebe
-# ApiError(404), trata como erro genérico e cai gracefully no Login.
-# (CF Pages só aceita 200/301/302/303/307/308/404/410/451 em _redirects.)
-/api/*    /api-stub.json    404
+# Faz /api/* responder o JSON do stub (com status 200, único status que CF
+# Pages aceita pra URL rewrite). O cliente HTTP em src/lib/api.ts detecta
+# a flag "stub" na resposta e levanta ApiError(401) → AuthContext cai no
+# Login. Sem hang de DNS em api.hermanocorradi.com.br (que ainda não existe).
+/api/*    /api-stub.json    200
 
-# SPA fallback do React Router (mantido)
+# SPA fallback do React Router
 /*        /index.html       200
