@@ -139,7 +139,7 @@ function SahfTeaserCard() {
         <div className="mt-6 space-y-2 text-sm">
           <p>● Documentos da Holding</p>
           <p>● Relatórios financeiros</p>
-          <p>● Garcez Academy</p>
+          <p>● Hermano Corradi Academy</p>
           <p>● Novidades e relatórios</p>
         </div>
       </div>

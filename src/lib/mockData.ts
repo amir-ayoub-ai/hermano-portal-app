@@ -3,9 +3,9 @@ import type { Client, User } from "@/types/domain";
 export const MOCK_USERS: Array<User & { password: string }> = [
   {
     id: "u-admin",
-    email: "admin@garcez.com.br",
+    email: "hermano@hermanocorradi.com.br",
     password: "admin123",
-    fullName: "Luiz Garcez",
+    fullName: "Dr. Hermano Corradi",
     role: "admin",
   },
   {
@@ -94,9 +94,9 @@ export const MOCK_PHASES: Phase[] = [
     progress: 100,
     status: "completed",
     tasks: [
-      { id: "t1", name: "Coleta de documentos", status: "completed", responsible: "Equipe Garcez" },
-      { id: "t2", name: "Análise patrimonial inicial", status: "completed", responsible: "Dr. Luiz Garcez" },
-      { id: "t3", name: "Reunião de apresentação", status: "completed", responsible: "Dr. Luiz Garcez" },
+      { id: "t1", name: "Coleta de documentos", status: "completed", responsible: "Equipe Hermano Corradi" },
+      { id: "t2", name: "Análise patrimonial inicial", status: "completed", responsible: "Dr. Hermano Corradi" },
+      { id: "t3", name: "Reunião de apresentação", status: "completed", responsible: "Dr. Hermano Corradi" },
     ],
   },
   {
@@ -105,7 +105,7 @@ export const MOCK_PHASES: Phase[] = [
     progress: 60,
     status: "in-progress",
     tasks: [
-      { id: "t4", name: "Levantamento de bens", status: "completed", responsible: "Equipe Garcez" },
+      { id: "t4", name: "Levantamento de bens", status: "completed", responsible: "Equipe Hermano Corradi" },
       { id: "t5", name: "Mapeamento societário", status: "in-progress", responsible: "Dra. Mariana" },
       { id: "t6", name: "Aprovação do croqui", status: "pending" },
     ],

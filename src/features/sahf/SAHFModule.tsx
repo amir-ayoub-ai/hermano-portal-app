@@ -20,7 +20,7 @@ export default function SAHFModule() {
       <ModuleHeader
         eyebrow="Etapa 4 · SAHF"
         title="Gestão de Legado Contínua"
-        description="Sistema de Acompanhamento da Holding Familiar — documentos, relatórios financeiros, novidades e a Garcez Academy, sempre à mão."
+        description="Sistema de Acompanhamento da Holding Familiar — documentos, relatórios financeiros, novidades e a Hermano Corradi Academy, sempre à mão."
         status="current"
       />
 
@@ -195,7 +195,7 @@ function NewsView() {
 
 function AcademyView() {
   const videos = [
-    { title: "Boas-vindas à Garcez Academy", duration: "4:12" },
+    { title: "Boas-vindas à Hermano Corradi Academy", duration: "4:12" },
     { title: "Holding familiar: o que é e por que importa", duration: "12:30" },
     { title: "Estratégias de proteção patrimonial", duration: "18:05" },
     { title: "Sucessão sem inventário: passo-a-passo", duration: "15:40" },

@@ -1,7 +1,7 @@
 {
-  "name": "Portal do Cliente — Garcez Consultoria",
-  "short_name": "Garcez",
-  "description": "Portal do Cliente da Garcez Consultoria Jurídica — acompanhamento do planejamento patrimonial e holding familiar.",
+  "name": "Portal do Cliente — Hermano Corradi",
+  "short_name": "Hermano Corradi",
+  "description": "Portal do Cliente do Dr. Hermano Corradi — acompanhamento do planejamento patrimonial e holding familiar.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

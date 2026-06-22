@@ -33,7 +33,7 @@ export function Logo({ variant = "horizontal", className, fixed }: LogoProps) {
   return (
     <img
       src={src}
-      alt="Garcez Consultoria"
+      alt="Dr. Hermano Corradi"
       className={cn("h-auto w-auto select-none", className)}
       draggable={false}
     />
