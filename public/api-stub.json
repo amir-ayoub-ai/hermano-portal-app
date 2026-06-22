@@ -1,1 +1,10 @@
-{"error":"Unauthorized","stub":true,"note":"API ainda não foi deployada (Coolify pendente)"}
+{
+  "id": "demo-client-1",
+  "email": "joao.demo@exemplo.com",
+  "fullName": "João Demonstração",
+  "role": "client",
+  "clientId": "c-demo-1",
+  "currentStage": "croqui",
+  "hasSahf": true,
+  "mustChangePassword": false
+}

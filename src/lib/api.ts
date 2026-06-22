@@ -71,12 +71,6 @@ async function request<T>(
     throw new ApiError(res.status, message, data);
   }
 
-  // Detecta resposta-stub (proteção pra quando a API real não está disponível
-  // e algum rewrite serve um JSON-stub com 200). Tratado como "deslogado".
-  if (data && typeof data === "object" && "stub" in data) {
-    throw new ApiError(401, "API stub — não autenticado", data);
-  }
-
   return data as T;
 }
 
